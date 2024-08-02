@@ -11,10 +11,11 @@ function SearchBase(props: TextFieldProps) {
           </InputAdornment>
         ),
       }}
+      fullWidth
       size="small"
       variant="outlined"
       placeholder="Search"
-      sx={{ maxWidth: 200, typography: "body2" }}
+      sx={{ typography: "body2" }}
       {...props}
     />
   );

@@ -1,6 +1,7 @@
 import {
   Box,
   CircularProgress,
+  Grid,
   IconButton,
   Table,
   TableBody,
@@ -15,6 +16,7 @@ import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import SearchBase from "../../common/SearchBase";
 import { Data } from "../../models";
+import FilterTable from "../../common/FilterTable";
 
 interface Props {
   data: Data[];
@@ -37,15 +39,22 @@ const columns: IColumn[] = [
 function TablePostManagement({ data, handleViewPost, loading }: Props) {
   const pageSize = useRef(10);
   const [dataTable, setDataTable] = useState<Data[]>(data);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [title, setTitle] = useState<string | null>(null);
 
-  let totalPage = Math.ceil(dataTable.length / pageSize.current);
-
+  const totalPage = Math.ceil(dataTable.length / pageSize.current);
   const [searchParams, setSearchParams] = useSearchParams();
+  const page = Number(searchParams.get("page")) || 1;
+  const startIndex = (page - 1) * pageSize.current;
+  const endIndex = startIndex + pageSize.current;
 
-  let page = Number(searchParams.get("page")) || 1;
+  const dataFilterUserId = [
+    ...new Map(data.map((item) => [item.userId, item.userId])).values(),
+  ];
 
-  let startIndex = (page - 1) * pageSize.current;
-  let endIndex = startIndex + pageSize.current;
+  const dataFilterTitle = [
+    ...new Map(data.map((item) => [item.title, item.title])).values(),
+  ];
 
   const handleChangePage = (page: number) => {
     searchParams.set("page", `${page}`);
@@ -64,7 +73,7 @@ function TablePostManagement({ data, handleViewPost, loading }: Props) {
   }, [data]);
 
   useEffect(() => {
-    const newData =
+    let newData =
       search !== "" || data
         ? data.filter(
             (item) =>
@@ -72,23 +81,58 @@ function TablePostManagement({ data, handleViewPost, loading }: Props) {
           )
         : data;
 
+    newData =
+      userId || title
+        ? userId && title
+          ? newData.filter(
+              (item) =>
+                item.title.includes(title) && item.userId === Number(userId)
+            )
+          : userId
+          ? newData.filter((item) => item.userId === Number(userId))
+          : title
+          ? newData.filter((item) => item.title.includes(title))
+          : []
+        : newData;
+
     setDataTable(newData);
-  }, [search, data]);
+  }, [search, data, userId, title]);
 
   return (
     <Box
       sx={{
         position: "relative",
         display: "flex",
-        // flex: 1,
         flexDirection: "column",
         gap: 1,
       }}
     >
-      <SearchBase
-        value={searchParams.get("search") || ""}
-        onChange={(e) => handleSearch(e.target.value)}
-      />
+      <Grid container spacing={2}>
+        <Grid item md={4} sm={12} xs={12}>
+          <SearchBase
+            value={searchParams.get("search") || ""}
+            onChange={(e) => handleSearch(e.target.value)}
+          />
+        </Grid>
+
+        <Grid item md={4} sm={12} xs={12}>
+          <FilterTable
+            data={dataFilterUserId}
+            value={userId}
+            handleChange={(_e, value) => setUserId(value)}
+            title="User ID"
+          />
+        </Grid>
+        <Grid item md={4} sm={12} xs={12}>
+          <FilterTable
+            data={dataFilterTitle}
+            value={title}
+            handleChange={(_e, value) => setTitle(value)}
+            title="Title"
+          />
+        </Grid>
+      </Grid>
+
       <TableContainer sx={{ maxHeight: 550 }}>
         <Table stickyHeader>
           <TableHead>
