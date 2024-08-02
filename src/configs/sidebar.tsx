@@ -13,7 +13,7 @@ export interface ISidebar {
 export const sidebar: ISidebar[] = [
   {
     title: "Dashboard",
-    path: ROUTER_PATHS.dashboard.root,
+    path: ROUTER_PATHS.dashboard.description,
     icon: <DashboardOutlinedIcon />,
   },
   {

@@ -7,7 +7,6 @@ function Dashboard() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
-  console.log(pathname);
   return (
     <BoxContainer
       sx={{ width: "100%", height: "100%" }}
