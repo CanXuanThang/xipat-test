@@ -15,7 +15,6 @@ import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import SearchBase from "../../common/SearchBase";
 import { Data } from "../../models";
-import { debounce } from "lodash";
 
 interface Props {
   data: Data[];
@@ -37,13 +36,11 @@ const columns: IColumn[] = [
 
 function TablePostManagement({ data, handleViewPost, loading }: Props) {
   const pageSize = useRef(10);
-  const [dataTable, setDataTable] = useState<Data[]>([]);
+  const [dataTable, setDataTable] = useState<Data[]>(data);
 
-  const totalPage = Math.ceil(data.length / pageSize.current);
+  let totalPage = Math.ceil(dataTable.length / pageSize.current);
 
   const [searchParams, setSearchParams] = useSearchParams();
-
-  const valueSearch = searchParams.get("search") || "";
 
   let page = Number(searchParams.get("page")) || 1;
 
@@ -55,28 +52,28 @@ function TablePostManagement({ data, handleViewPost, loading }: Props) {
     setSearchParams(searchParams, { replace: true });
   };
 
+  const search = searchParams.get("search") || "";
+
   const handleSearch = (value: string) => {
     searchParams.set("search", value);
     setSearchParams(searchParams, { replace: true });
   };
 
   useEffect(() => {
-    debounce(() => {
-      setDataTable(
-        valueSearch !== ""
-          ? dataTable.filter(
-              (data) =>
-                data.userId === Number(valueSearch) ||
-                data.title.includes(valueSearch)
-            )
-          : data.slice(startIndex, endIndex)
-      );
-    }, 500)();
-  }, [valueSearch]);
+    data && setDataTable(data);
+  }, [data]);
 
   useEffect(() => {
-    setDataTable(data.slice(startIndex, endIndex));
-  }, [data, startIndex, endIndex]);
+    const newData =
+      search !== "" || data
+        ? data.filter(
+            (item) =>
+              item.title.includes(search) || item.userId === Number(search)
+          )
+        : data;
+
+    setDataTable(newData);
+  }, [search, data]);
 
   return (
     <Box
@@ -92,7 +89,6 @@ function TablePostManagement({ data, handleViewPost, loading }: Props) {
         value={searchParams.get("search") || ""}
         onChange={(e) => handleSearch(e.target.value)}
       />
-
       <TableContainer sx={{ maxHeight: 550 }}>
         <Table stickyHeader>
           <TableHead>
@@ -104,7 +100,7 @@ function TablePostManagement({ data, handleViewPost, loading }: Props) {
           </TableHead>
 
           <TableBody>
-            {dataTable.map((item) => (
+            {dataTable.slice(startIndex, endIndex).map((item) => (
               <TableRow key={item.id}>
                 <TableCell>{item.id}</TableCell>
 
