@@ -1,6 +1,7 @@
 import { Box, Stack } from "@mui/material";
 import Navigator from "./Navigator";
 import { Outlet } from "react-router";
+import FacebookMsg from "../modules/common/FacebookMsg";
 
 function Layout() {
   return (
@@ -36,6 +37,8 @@ function Layout() {
             maxWidth="lg"
           >
             <Outlet />
+
+            <FacebookMsg />
           </Box>
         </Box>
       </Box>
